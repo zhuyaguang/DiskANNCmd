@@ -2,8 +2,8 @@ FROM ubuntu:20.04
 
 RUN mkdir -p /usr/diskann/bin
 RUN mkdir -p /usr/diskann/file
-COPY /bin/* /usr/diskann/bin
-COPY /file/* /usr/diskann/file
+COPY bin /usr/diskann/bin
+COPY file /usr/diskann/file
 # 二进制文件地址
 ENV BIN_PATH=/usr/diskann/bin
 
@@ -22,4 +22,4 @@ ENV QFVEC_PATH=/usr/diskann/file/query.fvecs
 ENV QFBIN_PATH=/usr/diskann/file/query.fbin
 
 EXPOSE 18180
-CMD main
+CMD /usr/diskann/bin/main

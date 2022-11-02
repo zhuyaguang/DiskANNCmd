@@ -1,7 +1,6 @@
 package main
 
 import (
-	"DiskANNCmd/pkg"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -71,7 +70,7 @@ func main() {
 	router.POST("/VecToBin", postVecToBin)
 	router.POST("/SearchDiskIndex", postSearchDiskIndex)
 
-	router.Run("localhost:8080")
+	router.Run(":18180")
 }
 
 func LearnVecToBin()  {
@@ -188,5 +187,6 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 	}
 
 	fmt.Print("SearchDiskIndex:", string(stdout))
+
 	return nil,string(stdout)
 }
