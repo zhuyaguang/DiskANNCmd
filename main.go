@@ -12,8 +12,10 @@ import (
 
 var (
 	binPath  string
-	fvecPath string
-	fbinPath string
+	QfvecPath string
+	QfbinPath string
+	LfvecPath string
+	LfbinPath string
 
 	dataType  string
 	distFn    string
@@ -34,8 +36,10 @@ var (
 func init() {
 	// vec_to_bin
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
-	fvecPath = getEnvOrDefault("FVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fvecs")
-	fbinPath = getEnvOrDefault("FBIN_PAThH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fbin")
+	QfvecPath = getEnvOrDefault("QFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fvecs")
+	QfbinPath = getEnvOrDefault("QFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fbin")
+	LfvecPath = getEnvOrDefault("LFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fvecs")
+	LfbinPath = getEnvOrDefault("LFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fbin")
 
 	// compute_groundtruth
 	dataType = getEnvOrDefault("DATA_TYPE", "float")
@@ -54,6 +58,10 @@ func init() {
 	L = getEnvOrDefault("L", "10 20 30 40 50 100")
 	resultPath = getEnvOrDefault("RESULT_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/res")
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
+
+	// 初始化原始数据和构建索引
+	LearnVecToBin()
+	LearnBiludIndex()
 }
 
 func main() {
@@ -61,47 +69,53 @@ func main() {
 
 	router := gin.Default()
 	router.POST("/VecToBin", postVecToBin)
-	router.POST("/ComputeGT", postComputeGroundTruth)
-	router.POST("/BuildDiskIndex", postBuildDiskIndex)
 	router.POST("/SearchDiskIndex", postSearchDiskIndex)
 
 	router.Run("localhost:8080")
 }
 
+func LearnVecToBin()  {
+	err := FvecToBin(binPath, LfvecPath, LfbinPath)
+	if err != nil {
+		return
+	}
+}
+
+func LearnBiludIndex()  {
+	err := BuildDiskIndex(binPath, dataType, distFn, dataPath, indexPathPrefix)
+	if err != nil {
+		return
+	}
+}
+
 func postVecToBin(c *gin.Context) {
 
-	err := FvecToBin(binPath, fvecPath, fbinPath)
+	err := FvecToBin(binPath, QfvecPath, QfbinPath)
 	if err != nil {
 		return
 	}
 	c.IndentedJSON(http.StatusCreated, "VecToBin successful")
 }
 
-func postComputeGroundTruth(c *gin.Context) {
-
-	err := ComputeGroundTruth(binPath, dataType, distFn, baseFile, queryFile, gtFile, K)
-	if err != nil {
-		return
-	}
-	c.IndentedJSON(http.StatusCreated, "ComputeGroundTruth successful")
-}
-
-func postBuildDiskIndex(c *gin.Context) {
-
-	err := BuildDiskIndex(binPath, dataType, distFn, dataPath, indexPathPrefix)
-	if err != nil {
-		return
-	}
-	c.IndentedJSON(http.StatusCreated, "ComputeGroundTruth successful")
-}
 
 func postSearchDiskIndex(c *gin.Context) {
+	// 1.text to vec
 
-	err := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
+	// 2.vec to bin
+	err := FvecToBin(binPath, QfvecPath, QfbinPath)
 	if err != nil {
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, "ComputeGroundTruth successful")
+
+	// 3.postComputeGroundTruth 可省略
+
+	// 3.SearchDiskIndex
+
+	err ,result := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
+	if err != nil {
+		return
+	}
+	c.IndentedJSON(http.StatusCreated, "SearchDiskIndex successful"+result)
 }
 
 func getEnvOrDefault(env string, defaultValue string) string {
@@ -129,9 +143,9 @@ func FvecToBin(bin, fvecPath, fbinPath string) error {
 // ComputeGroundTruth  ./tests/utils/compute_groundtruth  --data_type float --dist_fn l2 --base_file data/sift/sift_learn.fbin --query_file  data/sift/sift_query.fbin --gt_file data/sift/sift_query_learn_gt100 --K 100
 func ComputeGroundTruth(bin, dataType, distFn, baseFile, queryFile, gtFile, K string) error {
 	prg := bin + "compute_groundtruth"
-	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --base_file " + baseFile + " --query_file " + queryFile + " --gt_file " + gtFile + " --K" + K)
+	cmdString := "--data_type " + dataType + " --dist_fn " + distFn + " --base_file " + baseFile + " --query_file " + queryFile + " --gt_file " + gtFile + " --K" + K
 	fmt.Println(cmdString)
-	cmd := exec.Command(prg, cmdString)
+	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -148,7 +162,7 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 	prg := bin + "build_disk_index"
 	subCmd := " -R 32 -L50 -B 0.003 -M 1"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --data_path " + dataPath + " --index_path_prefix " + indexPathPrefix + subCmd)
-	cmd := exec.Command(prg, cmdString)
+	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -162,17 +176,17 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 }
 
 // SearchDiskIndex  ./tests/search_disk_index  --data_type float --dist_fn l2 --index_path_prefix data/sift/disk_index_sift_learn_R32_L50_A1.2 --query_file data/sift/sift_query.fbin  --gt_file data/sift/sift_query_learn_gt100 -K 10 -L 10 20 30 40 50 100 --result_path data/sift/res --num_nodes_to_cache 10000
-func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) error {
+func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error,string) {
 	prg := bin + "search_disk_index"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile + " --gt_file " + gtFile + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
-	cmd := exec.Command(prg, cmdString)
+	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return err
+		return err,""
 	}
 
 	fmt.Print("SearchDiskIndex:", string(stdout))
-	return nil
+	return nil,string(stdout)
 }
