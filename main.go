@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 )
 
 var (
@@ -98,23 +99,29 @@ func postVecToBin(c *gin.Context) {
 
 
 func postSearchDiskIndex(c *gin.Context) {
+	start := time.Now()
+	// Code to measure
+	duration := time.Since(start)
 	// 1.text to vec
 
 	// 2.vec to bin
+
 	err := FvecToBin(binPath, QfvecPath, QfbinPath)
 	if err != nil {
 		return
 	}
+	fmt.Println(duration)
 
 	// 3.postComputeGroundTruth 可省略
 
 	// 3.SearchDiskIndex
 
-	err ,result := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
+	err ,_ = SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
 	if err != nil {
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, "SearchDiskIndex successful"+result)
+	fmt.Println(duration)
+	c.IndentedJSON(http.StatusCreated, "SearchDiskIndex successful")
 }
 
 func getEnvOrDefault(env string, defaultValue string) string {

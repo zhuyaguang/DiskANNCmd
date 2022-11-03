@@ -4,8 +4,9 @@ RUN mkdir -p /usr/diskann/bin
 RUN mkdir -p /usr/diskann/file
 COPY bin /usr/diskann/bin
 COPY file /usr/diskann/file
+RUN chmod +x /usr/diskann/bin/*
 # 二进制文件地址
-ENV BIN_PATH=/usr/diskann/bin
+ENV BIN_PATH=/usr/diskann/bin/
 
 # 原始数据向量地址
 ENV LFVEC_PATH=/usr/diskann/file/learn.fvecs
