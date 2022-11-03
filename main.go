@@ -55,7 +55,7 @@ func init() {
 
 	// SearchDiskIndex
 	resultK = getEnvOrDefault("RESULT_K", "10")
-	L = getEnvOrDefault("L", "10 20 30 40 50 100")
+	L = getEnvOrDefault("L", "10")
 	resultPath = getEnvOrDefault("RESULT_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/res")
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
 
@@ -101,7 +101,6 @@ func postVecToBin(c *gin.Context) {
 func postSearchDiskIndex(c *gin.Context) {
 	start := time.Now()
 	// Code to measure
-	duration := time.Since(start)
 	// 1.text to vec
 
 	// 2.vec to bin
@@ -110,6 +109,7 @@ func postSearchDiskIndex(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	duration := time.Since(start)
 	fmt.Println(duration)
 
 	// 3.postComputeGroundTruth 可省略
@@ -120,6 +120,7 @@ func postSearchDiskIndex(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	duration = time.Since(start)
 	fmt.Println(duration)
 	c.IndentedJSON(http.StatusCreated, "SearchDiskIndex successful")
 }
