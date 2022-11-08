@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -116,13 +118,13 @@ func postSearchDiskIndex(c *gin.Context) {
 
 	// 3.SearchDiskIndex
 
-	err ,_ = SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
+	err ,rarr := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
 	if err != nil {
 		return
 	}
 	duration = time.Since(start)
 	fmt.Println(duration)
-	c.IndentedJSON(http.StatusCreated, "SearchDiskIndex successful")
+	c.IndentedJSON(http.StatusCreated, rarr)
 }
 
 func getEnvOrDefault(env string, defaultValue string) string {
@@ -183,7 +185,7 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 }
 
 // SearchDiskIndex  ./tests/search_disk_index  --data_type float --dist_fn l2 --index_path_prefix data/sift/disk_index_sift_learn_R32_L50_A1.2 --query_file data/sift/sift_query.fbin  --gt_file data/sift/sift_query_learn_gt100 -K 10 -L 10 20 30 40 50 100 --result_path data/sift/res --num_nodes_to_cache 10000
-func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error,string) {
+func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error,[]string) {
 	prg := bin + "search_disk_index"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile  + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
 	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
@@ -191,10 +193,13 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return err,""
+		return err,[]string{}
 	}
 
 	fmt.Print("SearchDiskIndex:", string(stdout))
 
-	return nil,string(stdout)
+	resultArr:=strings.Split(string(stdout),"diskann answer:")
+	fmt.Println(resultArr)
+
+	return nil,resultArr
 }
