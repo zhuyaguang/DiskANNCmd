@@ -146,6 +146,7 @@ func postSearchDiskIndex(c *gin.Context) {
 
 	// 3.SearchDiskIndex
 
+	fmt.Println("begin to search ..........")
 	err, rarr := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, vec2bin.Fbin, gtFile, resultK, L, resultPath, numNodesToCache)
 	if err != nil {
 		return
@@ -217,6 +218,7 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 	prg := bin + "search_disk_index"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
 	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
+	fmt.Println("cmd=====", prg+" "+cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -224,7 +226,7 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 		return err, []string{}
 	}
 
-	fmt.Print("SearchDiskIndex:", string(stdout))
+	//fmt.Print("SearchDiskIndex:", string(stdout))
 
 	resultArr := strings.Split(string(stdout), "diskann answer:")
 	fmt.Println(resultArr)
