@@ -25,7 +25,6 @@ var (
 	gtFile    string
 	K         string
 
-	dataPath        string
 	indexPathPrefix string
 
 	resultK         string
@@ -58,7 +57,6 @@ func init() {
 	K = getEnvOrDefault("K", "100")
 
 	// BuildDiskIndex
-	dataPath = getEnvOrDefault("DATA_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fbin")
 	indexPathPrefix = getEnvOrDefault("INDEX_PATH_PREFIX", "/home/zjlab/zyg/DiskANN/build/data/sift/disk_index_sift_learn_R32_L50_A1.2")
 
 	// SearchDiskIndex
@@ -93,7 +91,7 @@ func LearnVecToBin() {
 }
 
 func LearnBiludIndex() {
-	err := BuildDiskIndex(binPath, dataType, distFn, dataPath, indexPathPrefix)
+	err := BuildDiskIndex(binPath, dataType, distFn, LfbinPath, indexPathPrefix)
 	if err != nil {
 		return
 	}
