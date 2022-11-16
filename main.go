@@ -3,17 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 )
 
 var (
-	binPath  string
+	binPath   string
 	QfvecPath string
 	QfbinPath string
 	LfvecPath string
@@ -33,15 +31,22 @@ var (
 	L               string
 	resultPath      string
 	numNodesToCache string
+
+	healthState int
 )
+
+type VecToBin struct {
+	Fvec string `json:"fvec"`
+	Fbin string `json:"fbin"`
+}
 
 func init() {
 	// vec_to_bin
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
-	QfvecPath = getEnvOrDefault("QFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fvecs")
-	QfbinPath = getEnvOrDefault("QFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fbin")
-	LfvecPath = getEnvOrDefault("LFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fvecs")
-	LfbinPath = getEnvOrDefault("LFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_learn.fbin")
+	//QfvecPath = getEnvOrDefault("QFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fvecs")
+	//QfbinPath = getEnvOrDefault("QFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fbin")
+	LfvecPath = getEnvOrDefault("LFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/name.vec")
+	LfbinPath = getEnvOrDefault("LFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/name.fbin")
 
 	// compute_groundtruth
 	dataType = getEnvOrDefault("DATA_TYPE", "float")
@@ -64,50 +69,72 @@ func init() {
 	// 初始化原始数据和构建索引
 	LearnVecToBin()
 	LearnBiludIndex()
+	healthState = 1
 }
 
 func main() {
 	flag.Parse()
 
 	router := gin.Default()
-	router.POST("/VecToBin", postVecToBin)
+	//router.POST("/VecToBin", postVecToBin)
 	router.POST("/SearchDiskIndex", postSearchDiskIndex)
-
+	router.GET("/Healthy", GetHealthState)
 	router.Run(":18180")
 }
 
-func LearnVecToBin()  {
+// 初始化接口
+
+func LearnVecToBin() {
 	err := FvecToBin(binPath, LfvecPath, LfbinPath)
 	if err != nil {
 		return
 	}
 }
 
-func LearnBiludIndex()  {
+func LearnBiludIndex() {
 	err := BuildDiskIndex(binPath, dataType, distFn, dataPath, indexPathPrefix)
 	if err != nil {
 		return
 	}
 }
 
+func GetHealthState() {
+	if healthState == 1 {
+		c.IndentedJSON(http.StatusCreated, "索引构建完毕")
+	} else {
+		c.IndentedJSON(http.StatusProcessing, "索引构建中")
+	}
+}
+
+// 查询接口
+
 func postVecToBin(c *gin.Context) {
 
-	err := FvecToBin(binPath, QfvecPath, QfbinPath)
+	var vec2bin VecToBin
+
+	// Call BindJSON to bind the received JSON
+	if err := c.BindJSON(&vec2bin); err != nil {
+		return
+	}
+
+	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, "VecToBin successful")
+	c.IndentedJSON(http.StatusCreated, "VecToBin successful to %s", vec2bin.Fbin)
 }
-
 
 func postSearchDiskIndex(c *gin.Context) {
 	start := time.Now()
-	// Code to measure
-	// 1.text to vec
-
 	// 2.vec to bin
+	var vec2bin VecToBin
 
-	err := FvecToBin(binPath, QfvecPath, QfbinPath)
+	// Call BindJSON to bind the received JSON
+	if err := c.BindJSON(&vec2bin); err != nil {
+		return
+	}
+
+	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
 		return
 	}
@@ -118,7 +145,7 @@ func postSearchDiskIndex(c *gin.Context) {
 
 	// 3.SearchDiskIndex
 
-	err ,rarr := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, queryFile, gtFile, resultK, L, resultPath, numNodesToCache)
+	err, rarr := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, vec2bin.Fbin, gtFile, resultK, L, resultPath, numNodesToCache)
 	if err != nil {
 		return
 	}
@@ -154,7 +181,7 @@ func ComputeGroundTruth(bin, dataType, distFn, baseFile, queryFile, gtFile, K st
 	prg := bin + "compute_groundtruth"
 	cmdString := "--data_type " + dataType + " --dist_fn " + distFn + " --base_file " + baseFile + " --query_file " + queryFile + " --gt_file " + gtFile + " --K" + K
 	fmt.Println(cmdString)
-	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
+	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -171,7 +198,7 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 	prg := bin + "build_disk_index"
 	subCmd := " -R 32 -L50 -B 0.003 -M 1"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --data_path " + dataPath + " --index_path_prefix " + indexPathPrefix + subCmd)
-	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
+	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -185,21 +212,21 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 }
 
 // SearchDiskIndex  ./tests/search_disk_index  --data_type float --dist_fn l2 --index_path_prefix data/sift/disk_index_sift_learn_R32_L50_A1.2 --query_file data/sift/sift_query.fbin  --gt_file data/sift/sift_query_learn_gt100 -K 10 -L 10 20 30 40 50 100 --result_path data/sift/res --num_nodes_to_cache 10000
-func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error,[]string) {
+func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error, []string) {
 	prg := bin + "search_disk_index"
-	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile  + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
-	cmd := exec.Command("sh", "-c", prg +" "+ cmdString)
+	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
+	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
 	stdout, err := cmd.Output()
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return err,[]string{}
+		return err, []string{}
 	}
 
 	fmt.Print("SearchDiskIndex:", string(stdout))
 
-	resultArr:=strings.Split(string(stdout),"diskann answer:")
+	resultArr := strings.Split(string(stdout), "diskann answer:")
 	fmt.Println(resultArr)
 
-	return nil,resultArr
+	return nil, resultArr
 }
