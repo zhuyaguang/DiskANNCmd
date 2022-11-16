@@ -99,7 +99,7 @@ func LearnBiludIndex() {
 	}
 }
 
-func GetHealthState() {
+func GetHealthState(c *gin.Context) {
 	if healthState == 1 {
 		c.IndentedJSON(http.StatusCreated, "索引构建完毕")
 	} else {
@@ -122,7 +122,7 @@ func postVecToBin(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, "VecToBin successful to %s", vec2bin.Fbin)
+	c.IndentedJSON(http.StatusCreated, vec2bin.Fbin)
 }
 
 func postSearchDiskIndex(c *gin.Context) {
