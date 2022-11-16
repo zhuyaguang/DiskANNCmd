@@ -86,14 +86,14 @@ func main() {
 func LearnVecToBin() {
 	err := FvecToBin(binPath, LfvecPath, LfbinPath)
 	if err != nil {
-		return
+		panic("LearnVec to Bin failed!")
 	}
 }
 
 func LearnBiludIndex() {
 	err := BuildDiskIndex(binPath, dataType, distFn, LfbinPath, indexPathPrefix)
 	if err != nil {
-		return
+		panic("build index failed!")
 	}
 }
 
@@ -213,7 +213,7 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 }
 
 // SearchDiskIndex  ./tests/search_disk_index  --data_type float --dist_fn l2 --index_path_prefix data/sift/disk_index_sift_learn_R32_L50_A1.2 --query_file data/sift/sift_query.fbin  --gt_file data/sift/sift_query_learn_gt100 -K 10 -L 10 20 30 40 50 100 --result_path data/sift/res --num_nodes_to_cache 10000
-func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error, []string) {
+func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, K, L, resultPath, numNodesToCache string) (error, string) {
 	prg := bin + "search_disk_index"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --index_path_prefix " + indexPathPrefix + " --query_file " + queryFile + " -K " + K + " -L " + L + " --result_path " + resultPath + " --num_nodes_to_cache " + numNodesToCache)
 	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
@@ -222,13 +222,15 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 
 	if err != nil {
 		fmt.Println(err.Error())
-		return err, []string{}
+		return err, ""
 	}
 
 	//fmt.Print("SearchDiskIndex:", string(stdout))
 
 	resultArr := strings.Split(string(stdout), "diskann answer:")
-	fmt.Println(resultArr)
 
-	return nil, resultArr
+	fmt.Println(resultArr[1])
+	resultArr = strings.Split(resultArr[1], "query result end")
+
+	return nil, resultArr[0]
 }
