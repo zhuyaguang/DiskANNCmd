@@ -200,6 +200,7 @@ func BuildDiskIndex(bin, dataType, distFn, dataPath, indexPathPrefix string) err
 	prg := bin + "build_disk_index"
 	subCmd := " -R 32 -L50 -B 0.003 -M 1"
 	cmdString := fmt.Sprintf("--data_type " + dataType + " --dist_fn " + distFn + " --data_path " + dataPath + " --index_path_prefix " + indexPathPrefix + subCmd)
+	fmt.Println("build index .....", prg+" "+cmdString)
 	cmd := exec.Command("sh", "-c", prg+" "+cmdString)
 	stdout, err := cmd.Output()
 
