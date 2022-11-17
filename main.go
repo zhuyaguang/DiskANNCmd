@@ -236,7 +236,7 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 		return err, nil
 	}
 	res := strings.Replace(matches[1], "\n", "", -1)
-	resArr := strings.Split(res, " ")
+	resArr := strings.Fields(res)
 	if len(resArr) == 0 {
 		return err, nil
 	}
