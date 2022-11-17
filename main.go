@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
+	"regexp"
 	"time"
 )
 
@@ -227,10 +227,12 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 
 	//fmt.Print("SearchDiskIndex:", string(stdout))
 
-	resultArr := strings.Split(string(stdout), "diskann answer:")
+	str := `diskann answer:(.*)query result end`
+	r := regexp.MustCompile(str)
+	matches := r.FindStringSubmatch(string(stdout))
+	if len(matches) < 2 {
+		return err, ""
+	}
 
-	fmt.Println(resultArr[1])
-	resultArr = strings.Split(resultArr[1], "query result end")
-
-	return nil, resultArr[0]
+	return nil, matches[1]
 }
