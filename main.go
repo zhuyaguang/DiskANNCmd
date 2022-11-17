@@ -225,11 +225,12 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 		return err, ""
 	}
 
-	//fmt.Print("SearchDiskIndex:", string(stdout))
+	fmt.Print("SearchDiskIndex:=======", string(stdout))
 
 	str := `diskann answer:(.*)query result end`
 	r := regexp.MustCompile(str)
 	matches := r.FindStringSubmatch(string(stdout))
+	fmt.Println("======", matches)
 	if len(matches) < 2 {
 		return err, ""
 	}
