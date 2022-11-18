@@ -7,17 +7,18 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 )
 
 var (
-	binPath   string
-	QfvecPath string
-	QfbinPath string
-	LfvecPath string
-	LfbinPath string
+	binPath     string
+	BasePath    string
+	VecInitPath string //vec-init 项目地址
+	LfvecPath   string
+	LfbinPath   string
 
 	dataType  string
 	distFn    string
@@ -44,10 +45,10 @@ type VecToBin struct {
 func init() {
 	// vec_to_bin
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
-	//QfvecPath = getEnvOrDefault("QFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fvecs")
-	//QfbinPath = getEnvOrDefault("QFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/sift_query.fbin")
-	LfvecPath = getEnvOrDefault("LFVEC_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/name.vec")
-	LfbinPath = getEnvOrDefault("LFBIN_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/name.fbin")
+	BasePath = getEnvOrDefault("BASE_PATH", "/home/zjlab/zyg/")
+	VecInitPath = getEnvOrDefault("VECINIT_PATH", "/home/zjlab/zyg/")
+	LfvecPath = fmt.Sprintf(VecInitPath + "/vec-init/vectors/init/name.vec")
+	LfbinPath = fmt.Sprintf(VecInitPath + "/vec-init/vectors/init/name.bin")
 
 	// compute_groundtruth
 	dataType = getEnvOrDefault("DATA_TYPE", "float")
@@ -133,6 +134,9 @@ func postSearchDiskIndex(c *gin.Context) {
 	if err := c.BindJSON(&vec2bin); err != nil {
 		return
 	}
+	vec2bin.Fvec = filepath.Join(VecInitPath, vec2bin.Fvec)
+	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".vec", ".bin", -1)
+	fmt.Print(vec2bin.Fvec, vec2bin.Fbin)
 
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
