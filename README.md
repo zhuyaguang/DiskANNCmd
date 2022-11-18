@@ -16,7 +16,7 @@ cd ..
 
 export BASE_PATH="/home/zjlab/zyg" 
 
-export VECINIT_PATH="/home/zjlab/zyg"
+export VECINIT_PATH="/home/zjlab/zyg/vec-init"
 
 [//]: # (export LFVEC_PATH="/home/zjlab/zyg/vec-init/vectors/init/name.vec")
 

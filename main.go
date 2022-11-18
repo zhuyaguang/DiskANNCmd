@@ -47,8 +47,8 @@ func init() {
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
 	BasePath = getEnvOrDefault("BASE_PATH", "/home/zjlab/zyg/")
 	VecInitPath = getEnvOrDefault("VECINIT_PATH", "/home/zjlab/zyg/")
-	LfvecPath = fmt.Sprintf(VecInitPath + "/vec-init/vectors/init/name.vec")
-	LfbinPath = fmt.Sprintf(VecInitPath + "/vec-init/vectors/init/name.bin")
+	LfvecPath = filepath.Join(VecInitPath, "vectors/init/name.vec")
+	LfbinPath = filepath.Join(VecInitPath, "vectors/init/name.bin")
 
 	// compute_groundtruth
 	dataType = getEnvOrDefault("DATA_TYPE", "float")
