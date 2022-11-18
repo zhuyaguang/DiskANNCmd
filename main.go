@@ -152,7 +152,7 @@ func postSearchDiskIndex(c *gin.Context) {
 	}
 	duration = time.Since(start)
 	fmt.Println(duration)
-	c.IndentedJSON(http.StatusCreated, rarr)
+	c.IndentedJSON(http.StatusCreated, gin.H{"data": rarr})
 }
 
 func getEnvOrDefault(env string, defaultValue string) string {
