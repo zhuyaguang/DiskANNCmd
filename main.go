@@ -43,6 +43,8 @@ type VecToBin struct {
 	Field string `json:"field"` // abstract  claim  name
 }
 
+var MTypeBin map[string]string
+
 func init() {
 	// vec_to_bin
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
@@ -63,6 +65,8 @@ func init() {
 	resultK = getEnvOrDefault("RESULT_K", "10")
 	L = getEnvOrDefault("L", "10")
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
+
+	MTypeBin = make(map[string]string)
 
 	// 初始化原始数据和构建索引
 	//LearnVecToBin()
@@ -112,20 +116,11 @@ func postVecToBin(c *gin.Context) {
 		return
 	}
 	fmt.Print("======postVecToBin", vec2bin)
+	vec2bin.Fvec = filepath.Join(VecInitPath, vec2bin.Fvec)
+	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".vec", ".bin", -1)
+	fmt.Print(vec2bin.Fvec, vec2bin.Fbin)
 
-	if vec2bin.Field == "name" {
-		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/name.vec")
-		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/name.bin")
-		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_name_learn_R32_L50_A1.2")
-	} else if vec2bin.Field == "abstract" {
-		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/abstract.vec")
-		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/abstract.bin")
-		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_abstract_learn_R32_L50_A1.2")
-	} else if vec2bin.Field == "claim" {
-		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/claim.vec")
-		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/claim.bin")
-		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_claim_learn_R32_L50_A1.2")
-	}
+	indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), fmt.Sprintf("disk_index_%s_learn_R32_L50_A1.2", vec2bin.Field))
 
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
@@ -136,7 +131,7 @@ func postVecToBin(c *gin.Context) {
 	if err != nil {
 		panic("build index failed!")
 	}
-
+	MTypeBin[vec2bin.Field] = indexPathPrefix
 	healthState = 1
 	c.IndentedJSON(http.StatusOK, vec2bin.Fbin)
 }
@@ -161,14 +156,7 @@ func postSearchDiskIndex(c *gin.Context) {
 	duration := time.Since(start)
 	fmt.Println(duration)
 
-	if vec2bin.Field == "name" {
-		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_index_name_learn_R32_L50_A1.2")
-	} else if vec2bin.Field == "abstract" {
-		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_index_abstract_learn_R32_L50_A1.2")
-	} else if vec2bin.Field == "claim" {
-		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_claim_name_learn_R32_L50_A1.2")
-	}
-
+	indexPathPrefix = MTypeBin[vec2bin.Field]
 	// 3.SearchDiskIndex
 	resultPath = filepath.Join(filepath.Dir(vec2bin.Fbin), "res")
 	fmt.Println("begin to search ..........")
