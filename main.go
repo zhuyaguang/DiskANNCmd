@@ -122,6 +122,8 @@ func postVecToBin(c *gin.Context) {
 
 	indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), fmt.Sprintf("disk_index_%s_learn_R32_L50_A1.2", vec2bin.Field))
 
+	fmt.Println("===indexPathPrefix", indexPathPrefix)
+
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
 		return
