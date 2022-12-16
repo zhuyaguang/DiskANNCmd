@@ -120,10 +120,10 @@ func postVecToBin(c *gin.Context) {
 	if vec2bin.Field == "name" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/name.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/name.bin")
-	} else if vec2bin.IndexType == "abstract" {
+	} else if vec2bin.Field == "abstract" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/abstract.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/abstract.bin")
-	} else if vec2bin.IndexType == "claim" {
+	} else if vec2bin.Field == "claim" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/claim.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/claim.bin")
 	}
