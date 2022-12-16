@@ -58,12 +58,10 @@ func init() {
 	K = getEnvOrDefault("K", "100")
 
 	// BuildDiskIndex
-	indexPathPrefix = getEnvOrDefault("INDEX_PATH_PREFIX", "/home/zjlab/zyg/DiskANN/build/data/sift/disk_index_sift_learn_R32_L50_A1.2")
 
 	// SearchDiskIndex
 	resultK = getEnvOrDefault("RESULT_K", "10")
 	L = getEnvOrDefault("L", "10")
-	resultPath = getEnvOrDefault("RESULT_PATH", "/home/zjlab/zyg/DiskANN/build/data/sift/res")
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
 
 	// 初始化原始数据和构建索引
@@ -106,8 +104,6 @@ func GetHealthState(c *gin.Context) {
 	}
 }
 
-// 查询接口
-
 func postVecToBin(c *gin.Context) {
 
 	var vec2bin VecToBin
@@ -120,19 +116,22 @@ func postVecToBin(c *gin.Context) {
 	if vec2bin.Field == "name" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/name.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/name.bin")
+		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_name_learn_R32_L50_A1.2")
 	} else if vec2bin.Field == "abstract" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/abstract.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/abstract.bin")
+		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_abstract_learn_R32_L50_A1.2")
 	} else if vec2bin.Field == "claim" {
 		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/claim.vec")
 		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/claim.bin")
+		indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_claim_learn_R32_L50_A1.2")
 	}
 
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
 		return
 	}
-	indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_flab_learn_R32_L50_A1.2")
+
 	err = BuildDiskIndex(binPath, dataType, distFn, vec2bin.Fbin, indexPathPrefix)
 	if err != nil {
 		panic("build index failed!")
@@ -162,10 +161,16 @@ func postSearchDiskIndex(c *gin.Context) {
 	duration := time.Since(start)
 	fmt.Println(duration)
 
-	// 3.postComputeGroundTruth 可省略
+	if vec2bin.Field == "name" {
+		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_index_name_learn_R32_L50_A1.2")
+	} else if vec2bin.Field == "abstract" {
+		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_index_abstract_learn_R32_L50_A1.2")
+	} else if vec2bin.Field == "claim" {
+		indexPathPrefix = filepath.Join(VecInitPath, "vectors/init/disk_claim_name_learn_R32_L50_A1.2")
+	}
 
 	// 3.SearchDiskIndex
-
+	resultPath = filepath.Join(filepath.Dir(vec2bin.Fbin), "res")
 	fmt.Println("begin to search ..........")
 	err, rarr := SearchDiskIndex(binPath, dataType, distFn, indexPathPrefix, vec2bin.Fbin, gtFile, resultK, L, resultPath, numNodesToCache)
 	if err != nil {
