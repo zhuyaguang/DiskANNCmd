@@ -181,6 +181,7 @@ func getEnvOrDefault(env string, defaultValue string) string {
 
 func FvecToBin(bin, fvecPath, fbinPath string) error {
 	prg := bin + "fvecs_to_bin"
+	fmt.Println("build index .....", prg+" "+fvecPath+" "+fbinPath)
 	cmd := exec.Command(prg, fvecPath, fbinPath)
 	stdout, err := cmd.Output()
 
