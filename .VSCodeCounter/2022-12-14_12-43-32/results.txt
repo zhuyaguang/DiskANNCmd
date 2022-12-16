@@ -1,0 +1,41 @@
+Date : 2022-12-14 12:43:32
+Directory : /Users/zhuyaguang/DiskANNCmd
+Total : 10 files,  436 codes, 21 comments, 66 blanks, all 523 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Go               |          2 |        189 |         16 |         47 |        252 |
+| XML              |          4 |        106 |          0 |          0 |        106 |
+| Go Checksum File |          1 |         86 |          0 |          1 |         87 |
+| Go Module File   |          1 |         23 |          0 |          4 |         27 |
+| Docker           |          1 |         17 |          5 |          4 |         26 |
+| Markdown         |          1 |         15 |          0 |         10 |         25 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                              | files      | code       | comment    | blank      | total      |
++---------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                 |         10 |        436 |         21 |         66 |        523 |
+| .idea                                             |          4 |        106 |          0 |          0 |        106 |
+| pkg                                               |          1 |          1 |          0 |          1 |          2 |
++---------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                          | language         | code       | comment    | blank      | total      |
++---------------------------------------------------+------------------+------------+------------+------------+------------+
+| /Users/zhuyaguang/DiskANNCmd/.idea/DiskANNCmd.iml | XML              |          9 |          0 |          0 |          9 |
+| /Users/zhuyaguang/DiskANNCmd/.idea/modules.xml    | XML              |          8 |          0 |          0 |          8 |
+| /Users/zhuyaguang/DiskANNCmd/.idea/vcs.xml        | XML              |          6 |          0 |          0 |          6 |
+| /Users/zhuyaguang/DiskANNCmd/.idea/workspace.xml  | XML              |         83 |          0 |          0 |         83 |
+| /Users/zhuyaguang/DiskANNCmd/Dockerfile           | Docker           |         17 |          5 |          4 |         26 |
+| /Users/zhuyaguang/DiskANNCmd/README.md            | Markdown         |         15 |          0 |         10 |         25 |
+| /Users/zhuyaguang/DiskANNCmd/go.mod               | Go Module File   |         23 |          0 |          4 |         27 |
+| /Users/zhuyaguang/DiskANNCmd/go.sum               | Go Checksum File |         86 |          0 |          1 |         87 |
+| /Users/zhuyaguang/DiskANNCmd/main.go              | Go               |        188 |         16 |         46 |        250 |
+| /Users/zhuyaguang/DiskANNCmd/pkg/type.go          | Go               |          1 |          0 |          1 |          2 |
+| Total                                             |                  |        436 |         21 |         66 |        523 |
++---------------------------------------------------+------------------+------------+------------+------------+------------+

@@ -1,0 +1,12 @@
+"filename", "language", "XML", "Go", "Markdown", "Docker", "Go Module File", "Go Checksum File", "comment", "blank", "total"
+"/Users/zhuyaguang/DiskANNCmd/.idea/DiskANNCmd.iml", "XML", 9, 0, 0, 0, 0, 0, 0, 0, 9
+"/Users/zhuyaguang/DiskANNCmd/.idea/modules.xml", "XML", 8, 0, 0, 0, 0, 0, 0, 0, 8
+"/Users/zhuyaguang/DiskANNCmd/.idea/vcs.xml", "XML", 6, 0, 0, 0, 0, 0, 0, 0, 6
+"/Users/zhuyaguang/DiskANNCmd/.idea/workspace.xml", "XML", 83, 0, 0, 0, 0, 0, 0, 0, 83
+"/Users/zhuyaguang/DiskANNCmd/Dockerfile", "Docker", 0, 0, 0, 17, 0, 0, 5, 4, 26
+"/Users/zhuyaguang/DiskANNCmd/README.md", "Markdown", 0, 0, 15, 0, 0, 0, 0, 10, 25
+"/Users/zhuyaguang/DiskANNCmd/go.mod", "Go Module File", 0, 0, 0, 0, 23, 0, 0, 4, 27
+"/Users/zhuyaguang/DiskANNCmd/go.sum", "Go Checksum File", 0, 0, 0, 0, 0, 86, 0, 1, 87
+"/Users/zhuyaguang/DiskANNCmd/main.go", "Go", 0, 188, 0, 0, 0, 0, 16, 46, 250
+"/Users/zhuyaguang/DiskANNCmd/pkg/type.go", "Go", 0, 1, 0, 0, 0, 0, 0, 1, 2
+"Total", "-", 106, 189, 15, 17, 23, 86, 21, 66, 523

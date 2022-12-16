@@ -38,17 +38,16 @@ var (
 )
 
 type VecToBin struct {
-	Fvec string `json:"fvec"`
-	Fbin string `json:"fbin"`
+	Fvec  string `json:"fvec"`
+	Fbin  string `json:"fbin"`
+	Field string `json:"field"` // abstract  claim  name
 }
 
 func init() {
 	// vec_to_bin
 	binPath = getEnvOrDefault("BIN_PATH", "/home/zjlab/zyg/bin/")
 	BasePath = getEnvOrDefault("BASE_PATH", "/home/zjlab/zyg/")
-	VecInitPath = getEnvOrDefault("VECINIT_PATH", "/home/zjlab/zyg/")
-	LfvecPath = filepath.Join(VecInitPath, "vectors/init/name.vec")
-	LfbinPath = filepath.Join(VecInitPath, "vectors/init/name.bin")
+	VecInitPath = getEnvOrDefault("VECINIT_PATH", "/home/zjlab/zyg/vec-init/")
 
 	// compute_groundtruth
 	dataType = getEnvOrDefault("DATA_TYPE", "float")
@@ -68,16 +67,16 @@ func init() {
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
 
 	// 初始化原始数据和构建索引
-	LearnVecToBin()
-	LearnBiludIndex()
-	healthState = 1
+	//LearnVecToBin()
+	//LearnBiludIndex()
+	//healthState = 1
 }
 
 func main() {
 	flag.Parse()
 
 	router := gin.Default()
-	//router.POST("/VecToBin", postVecToBin)
+	router.POST("/init", postVecToBin)
 	router.POST("/SearchDiskIndex", postSearchDiskIndex)
 	router.GET("/Healthy", GetHealthState)
 	router.Run(":18180")
@@ -112,16 +111,34 @@ func GetHealthState(c *gin.Context) {
 func postVecToBin(c *gin.Context) {
 
 	var vec2bin VecToBin
-
 	// Call BindJSON to bind the received JSON
 	if err := c.BindJSON(&vec2bin); err != nil {
 		return
+	}
+	fmt.Print("======postVecToBin", vec2bin)
+
+	if vec2bin.Field == "name" {
+		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/name.vec")
+		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/name.bin")
+	} else if vec2bin.IndexType == "abstract" {
+		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/abstract.vec")
+		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/abstract.bin")
+	} else if vec2bin.IndexType == "claim" {
+		vec2bin.Fvec = filepath.Join(VecInitPath, "vectors/init/claim.vec")
+		vec2bin.Fbin = filepath.Join(VecInitPath, "vectors/init/claim.bin")
 	}
 
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
 	if err != nil {
 		return
 	}
+	indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), "disk_index_flab_learn_R32_L50_A1.2")
+	err = BuildDiskIndex(binPath, dataType, distFn, vec2bin.Fbin, indexPathPrefix)
+	if err != nil {
+		panic("build index failed!")
+	}
+
+	healthState = 1
 	c.IndentedJSON(http.StatusOK, vec2bin.Fbin)
 }
 
