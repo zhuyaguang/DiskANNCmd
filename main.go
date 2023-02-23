@@ -117,7 +117,7 @@ func postVecToBin(c *gin.Context) {
 	}
 	fmt.Print("======postVecToBin", vec2bin)
 	vec2bin.Fvec = filepath.Join(VecInitPath, vec2bin.Fvec)
-	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".vec", ".bin", -1)
+	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".fvecs", ".bin", -1)
 	fmt.Print(vec2bin.Fvec, vec2bin.Fbin)
 
 	indexPathPrefix = filepath.Join(filepath.Dir(vec2bin.Fbin), fmt.Sprintf("disk_index_%s_learn_R32_L50_A1.2", vec2bin.Field))
@@ -148,7 +148,7 @@ func postSearchDiskIndex(c *gin.Context) {
 		return
 	}
 	vec2bin.Fvec = filepath.Join(VecInitPath, vec2bin.Fvec)
-	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".vec", ".bin", -1)
+	vec2bin.Fbin = strings.Replace(vec2bin.Fvec, ".fvecs", ".bin", -1)
 	fmt.Print(vec2bin.Fvec, vec2bin.Fbin)
 
 	err := FvecToBin(binPath, vec2bin.Fvec, vec2bin.Fbin)
