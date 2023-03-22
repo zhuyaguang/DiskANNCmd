@@ -302,11 +302,6 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 	return nil, resArr
 }
 
-func main() {
-	// ...
-
-}
-
 func saveDataToFile(filename string) error {
 	file, err := os.Create(filename)
 	if err != nil {
