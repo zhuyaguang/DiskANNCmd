@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -67,11 +68,47 @@ func init() {
 	numNodesToCache = getEnvOrDefault("NUM_NODES_TO_CACHE", "10000")
 
 	MTypeBin = make(map[string]string)
+	err := loadDataFromFile("cache.txt")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	fmt.Println(MTypeBin)
 
 	// 初始化原始数据和构建索引
 	//LearnVecToBin()
 	//LearnBiludIndex()
 	//healthState = 1
+}
+
+func loadDataFromFile(filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			file, err = os.Create(filename)
+			if err != nil {
+				return fmt.Errorf("failed to create file: %w", err)
+			}
+			file.Close()
+			return nil
+		}
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		keyValuePair := strings.Split(line, ":")
+		if len(keyValuePair) == 2 {
+			MTypeBin[keyValuePair[0]] = keyValuePair[1]
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("failed to read file: %w", err)
+	}
+
+	return nil
 }
 
 func main() {
@@ -134,6 +171,10 @@ func postVecToBin(c *gin.Context) {
 		panic("build index failed!")
 	}
 	MTypeBin[vec2bin.Field] = indexPathPrefix
+	err = saveDataToFile("cache.txt")
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
 	healthState = 1
 	c.IndentedJSON(http.StatusOK, vec2bin.Fbin)
 }
@@ -259,4 +300,27 @@ func SearchDiskIndex(bin, dataType, distFn, indexPathPrefix, queryFile, gtFile, 
 	}
 
 	return nil, resArr
+}
+
+func main() {
+	// ...
+
+}
+
+func saveDataToFile(filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("failed to create file: %w", err)
+	}
+	defer file.Close()
+
+	for key, value := range MTypeBin {
+		line := fmt.Sprintf("%s:%s\n", key, value)
+		_, err = file.WriteString(line)
+		if err != nil {
+			return fmt.Errorf("failed to write data to file: %w", err)
+		}
+	}
+
+	return nil
 }
